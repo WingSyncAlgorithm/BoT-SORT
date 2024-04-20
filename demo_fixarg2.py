@@ -380,9 +380,8 @@ def run_tracker_in_thread(exp, args, filename, left_region_name, right_region_na
     if not os.path.exists(folder_name):
         os.makedirs(folder_name)
     angle_combinations = [
-        (8, 6, 12), (7, 5, 11), (11, 12, 14), (12, 11, 13),
-        (12, 14, 16), (11, 13, 15), (5, 6, 12), (6, 5, 11),
-        (6, 12, 11), (12, 11, 5), (6, 8, 10), (5, 7, 9),
+        (5, 6, 12), (6, 5, 11),
+        (6, 12, 11), (12, 11, 5),
         (0, 6, 5), (0, 5, 6), (6, 0, 5)
     ]
     while True:
