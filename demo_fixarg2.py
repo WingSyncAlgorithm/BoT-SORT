@@ -309,7 +309,7 @@ def run_tracker_in_thread(exp, args, filename, left_region_name, right_region_na
 
     predictor = Predictor(model, exp, trt_file, decoder, args.device, args.fp16)
     current_time = time.localtime()
-    cap = cv2.VideoCapture(filename)
+    cap = cv2.VideoCapture(args.path)
     width = cap.get(cv2.CAP_PROP_FRAME_WIDTH)  # float
     height = cap.get(cv2.CAP_PROP_FRAME_HEIGHT)  # float
     fps = cap.get(cv2.CAP_PROP_FPS)
@@ -358,11 +358,9 @@ def run_tracker_in_thread(exp, args, filename, left_region_name, right_region_na
         ret_val, frame = cap.read()
         if frame_for_window[file_index].start_detection == False:
             # frame_for_window[file_index].ret = True
-            if args.demo=='video':
-                cv2.waitKey(25) #讀影片時需要延遲，以降低影片速度
+            cv2.waitKey(25) #讀影片時需要延遲，以降低影片速度
             frame_for_window[file_index].frame = frame
             continue
-        print(file_index,ret_val)
         if ret_val:
             # Detect objects
             outputs, img_info = predictor.inference(frame, timer)
@@ -408,10 +406,10 @@ def run_tracker_in_thread(exp, args, filename, left_region_name, right_region_na
                     h = len(frame[:, 0])
                     polygon = Polygon([(x * w, y * h) for x, y in frame_for_window[file_index].polygons])
                     point = Point(people[b].current_position[0],people[b].current_position[1])
-                    #print(point.within(polygon))
+                    print(point.within(polygon))
                     if point.within(polygon) == False:
-                        #print("bbb",b,people[b].current_position[0],people[b].current_position[1],region[left_region_name].people_in_region)
-                        #print("kkk",[(x * w, y * h) for x, y in frame_for_window[file_index].polygons])
+                        print("bbb",b,people[b].current_position[0],people[b].current_position[1],region[left_region_name].people_in_region)
+                        print("kkk",[(x * w, y * h) for x, y in frame_for_window[file_index].polygons])
                         region[left_region_name].add_person([b])
                         region[right_region_name].delete_person([b])
                         same_person = people[b].same_person
@@ -428,7 +426,7 @@ def run_tracker_in_thread(exp, args, filename, left_region_name, right_region_na
             else:
                 timer.toc()
                 online_im = img_info['raw_img']
-            #number = len(online_ids)
+            number = len(online_ids)
             number_in_left = region[left_region_name].num_people
             res_plotted = online_im
             # Store the time and object count
@@ -440,7 +438,7 @@ def run_tracker_in_thread(exp, args, filename, left_region_name, right_region_na
             cv2.imwrite(path, res_plotted)
             frame_index += 1
             ax_object_count.clear()
-            #print(len(times), len(object_counts))
+            print(len(times), len(object_counts))
             ax_object_count.plot(np.array(times)/60, object_counts)
             ax_object_count.set_xlabel('Time')
             ax_object_count.set_ylabel('Object Count')
@@ -471,7 +469,6 @@ def run_tracker_in_thread(exp, args, filename, left_region_name, right_region_na
         else:
             break
         frame_id += 1
-    print(file_index,'quit')
     cap.release()                           # 所有作業都完成後，釋放資源
     '''
     if args.save_result:
@@ -594,7 +591,7 @@ class CameraWidget(QWidget):
             self.polygons[self.selected_frame_index0] = []
         self.polygons[self.selected_frame_index0].append(self.points.copy())
         frame_for_window[self.selected_frame_index0].polygons = [(point.x()/self.width, point.y()/self.height) for point in self.points]
-        #print("Polygon Confirmed for", self.selected_frame_index0, ":", self.points)
+        print("Polygon Confirmed for", self.selected_frame_index0, ":", self.points)
 
     def mousePressEvent(self, event):
         if event.button() == Qt.LeftButton:
@@ -639,7 +636,7 @@ class CameraWidget(QWidget):
         # Terminate all threads before closing the window
         for i in range(len(frame_for_window)):
             frame_for_window[i].quit = True
-        #print("ttttt",self.polygons)
+        print("ttttt",self.polygons)
         event.accept()
 
         # Clean up and close windows
@@ -659,8 +656,8 @@ if __name__ == "__main__":
     # Set specific argument values
     args_dict = {
         'demo': 'webcam',
-        'path': "0",
-        'exp_file': R'yolox/exps/example/mot/yolox_x_mix_det.py',
+        'path': "c.mp4",
+        'exp_file': 'yolox/exps/example/mot/yolox_x_mix_det.py',
         'ckpt': 'pretrained/bytetrack_x_mot17.pth.tar',
         'with_reid': True,
         'fuse_score': True,
@@ -677,7 +674,7 @@ if __name__ == "__main__":
     args.ablation = False
     args.mot20 = not args.fuse_score
     
-    video_file1 = 0  # Path to video file, 0 for webcam
+    video_file1 = "c.mp4.MOV"  # Path to video file, 0 for webcam
     video_file2 = "d.mp4"
     video_file3 = "door3.MOV"
     #video_file2 = "c.mp4"
@@ -690,9 +687,9 @@ if __name__ == "__main__":
         target=run_tracker_in_thread, args=(exp, args, video_file1, "A", "Outside", 0), daemon=True)
     
     args_dict2 = {
-        'demo': 'video',
+        'demo': 'webcam',
         'path': "d.mp4",
-        'exp_file': 'yolox/exps/example/mot/yolox_x_mix_det2.py',
+        'exp_file': 'yolox/exps/example/mot/yolox_x_mix_det.py',
         'ckpt': 'pretrained/bytetrack_x_mot17.pth.tar',
         'with_reid': True,
         'fuse_score': True,
