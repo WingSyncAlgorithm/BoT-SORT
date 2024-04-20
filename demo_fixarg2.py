@@ -689,7 +689,7 @@ if __name__ == "__main__":
     # Set specific argument values
     args_dict = {
         'demo': 'webcam',
-        'path': 0,
+        'path': "c.mp4",
         'exp_file': 'yolox/exps/example/mot/yolox_x_mix_det.py',
         'ckpt': 'pretrained/bytetrack_x_mot17.pth.tar',
         'with_reid': True,
@@ -707,7 +707,7 @@ if __name__ == "__main__":
     args.ablation = False
     args.mot20 = not args.fuse_score
     
-    video_file1 = 0  # Path to video file, 0 for webcam
+    video_file1 = "c.mp4"  # Path to video file, 0 for webcam
     video_file2 = "d.mp4"
     video_file3 = "door3.MOV"
     #video_file2 = "c.mp4"
