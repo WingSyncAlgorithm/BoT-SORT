@@ -271,7 +271,7 @@ class Predictor(object):
         return outputs, img_info
 
 def run_tracker_in_thread(exp, args, filename, left_region_name, right_region_name, file_index):
-    inferencer = MMPoseInferencer("human")
+    inferencer = MMPoseInferencer(pose3d = "human3d")
     if not args.experiment_name:
         args.experiment_name = exp.exp_name
 
@@ -349,9 +349,6 @@ def run_tracker_in_thread(exp, args, filename, left_region_name, right_region_na
     timer = Timer()
     frame_id = 0
     results = []
-    
-    person_id = set()
-    number0 = 0
     fourcc = cv2.VideoWriter_fourcc(*'XVID')
     out = cv2.VideoWriter(f'output_{file_index}.avi', fourcc, 20.0, (800, 400)) #形狀要跟影片加圖表的大小一樣
     # Set up Matplotlib figure and canvas for the object count plot
@@ -360,12 +357,8 @@ def run_tracker_in_thread(exp, args, filename, left_region_name, right_region_na
     ax_object_count = fig_object_count.add_subplot(111)
     times = []
     object_counts = []
-    real_times = []
     t0 = time.perf_counter()
-    paths = []
-    frame_count = 0
     frame_index = 0
-    detection_interval = 5
     # Create directory for saving frames
     frame_dir = 'frames'
     os.makedirs(frame_dir, exist_ok=True)
@@ -468,7 +461,6 @@ def run_tracker_in_thread(exp, args, filename, left_region_name, right_region_na
             else:
                 timer.toc()
                 online_im = img_info['raw_img']
-            #number = len(online_ids)
             number_in_left = region[left_region_name].num_people
             res_plotted = online_im
             # Store the time and object count
@@ -480,7 +472,6 @@ def run_tracker_in_thread(exp, args, filename, left_region_name, right_region_na
             cv2.imwrite(path, res_plotted)
             frame_index += 1
             ax_object_count.clear()
-            print(len(times), len(object_counts))
             ax_object_count.plot(np.array(times)/60, object_counts)
             ax_object_count.set_xlabel('Time')
             ax_object_count.set_ylabel('Object Count')
