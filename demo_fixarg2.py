@@ -319,7 +319,7 @@ def run_tracker_in_thread(exp, args, filename, left_region_name, right_region_na
     if args.demo == "video":
         save_path = osp.join(save_folder, args.path.split("/")[-1])
     else:
-        save_path = osp.join(save_folder, "camera.mp4")
+        save_path = osp.join(save_folder, f"camera_{file_index}.mp4")
     logger.info(f"video save_path is {save_path}")
     vid_writer = cv2.VideoWriter(
         save_path, cv2.VideoWriter_fourcc(*"mp4v"), fps, (int(width), int(height))
@@ -461,7 +461,7 @@ def run_tracker_in_thread(exp, args, filename, left_region_name, right_region_na
             if frame_for_window[file_index].quit == True:
                 break
             if args.save_result:
-                cv2.imshow('oxxostudio',online_im)
+                #cv2.imshow('oxxostudio',online_im)
                 vid_writer.write(online_im)
             ch = cv2.waitKey(1)
             if ch == 27 or ch == ord("q") or ch == ord("Q"):
@@ -674,7 +674,7 @@ if __name__ == "__main__":
     args.ablation = False
     args.mot20 = not args.fuse_score
     
-    video_file1 = "c.mp4.MOV"  # Path to video file, 0 for webcam
+    video_file1 = "c.mp4"  # Path to video file, 0 for webcam
     video_file2 = "d.mp4"
     video_file3 = "door3.MOV"
     #video_file2 = "c.mp4"
