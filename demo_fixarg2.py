@@ -405,10 +405,15 @@ def run_tracker_in_thread(exp, args, filename, left_region_name, right_region_na
                         people[b] = Person(b, [x_center, y_center])
                     # 进行关键点检测
                     result_generator = inferencer(img, show=False, use_oks_tracking=False)
-                    results = [result for result in result_generator]
-
-                    # 获取关键点坐标
-                    points = results[0]['predictions'][0][0]['keypoints']
+                    try:
+                        results = [result for result in result_generator]
+                        points = results[0]['predictions'][0][0]['keypoints']
+                    except ZeroDivisionError:
+                        points = []
+                        results = []
+                    except StopIteration:
+                        results = []
+                        points = []
                     people[b].keypoints.append(points)
                     people[b].add_image(img)
                     people[b].update_position([x_center, y_center])
@@ -436,7 +441,7 @@ def run_tracker_in_thread(exp, args, filename, left_region_name, right_region_na
             else:
                 timer.toc()
                 online_im = img_info['raw_img']
-            number = len(online_ids)
+            #number = len(online_ids)
             number_in_left = region[left_region_name].num_people
             res_plotted = online_im
             # Store the time and object count
@@ -666,7 +671,7 @@ if __name__ == "__main__":
     # Set specific argument values
     args_dict = {
         'demo': 'webcam',
-        'path': "c.mp4",
+        'path': 0,
         'exp_file': 'yolox/exps/example/mot/yolox_x_mix_det.py',
         'ckpt': 'pretrained/bytetrack_x_mot17.pth.tar',
         'with_reid': True,
@@ -684,7 +689,7 @@ if __name__ == "__main__":
     args.ablation = False
     args.mot20 = not args.fuse_score
     
-    video_file1 = "c.mp4"  # Path to video file, 0 for webcam
+    video_file1 = 0  # Path to video file, 0 for webcam
     video_file2 = "d.mp4"
     video_file3 = "door3.MOV"
     #video_file2 = "c.mp4"
