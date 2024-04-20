@@ -35,6 +35,7 @@ from PyQt5.QtWidgets import QApplication, QWidget, QLabel, QVBoxLayout, QComboBo
 from PyQt5.QtGui import QPainter, QImage, QColor, QPolygon
 from shapely.geometry import Point, Polygon
 from mmpose.apis import MMPoseInferencer
+import math
 
 class Person():
     def __init__(self, idx, position):
@@ -45,6 +46,7 @@ class Person():
         self.previous_position = position
         self.current_position = position
         self.keypoints = []
+        self.angle = []
 
     def add_image(self, image):
         self.image.append(image)
@@ -194,6 +196,22 @@ def write_results(filename, results):
                 f.write(line)
     logger.info('save results to {}'.format(filename))
 
+def caculate_angle(points,idx1,idx2,idx3):
+    p1 = points[idx1]
+    p2 = points[idx2]
+    p3 = points[idx3]
+    # 計算內積
+    dot_product = sum((p1[i] - p2[i]) * (p3[i] - p2[i]) for i in range(len(p1)))
+    
+    # 計算向量模長
+    v1_length = math.sqrt(sum((p1[i] - p2[i])**2 for i in range(len(p1))))
+    v2_length = math.sqrt(sum((p3[i] - p2[i])**2 for i in range(len(p3))))
+    
+    # 計算夾角（弧度）
+    angle_rad = math.acos(dot_product / (v1_length * v2_length))
+
+    
+    return angle_rad
 
 class Predictor(object):
     def __init__(
@@ -354,7 +372,12 @@ def run_tracker_in_thread(exp, args, filename, left_region_name, right_region_na
     folder_name = "person_"+str(file_index)
     if not os.path.exists(folder_name):
         os.makedirs(folder_name)
-
+    angle_combinations = [
+        (8, 6, 12), (7, 5, 11), (11, 12, 14), (12, 11, 13),
+        (12, 14, 16), (11, 13, 15), (5, 6, 12), (6, 5, 11),
+        (6, 12, 11), (12, 11, 5), (6, 8, 10), (5, 7, 9),
+        (0, 6, 5), (0, 5, 6), (6, 0, 5)
+    ]
     while True:
         if frame_id % 20 == 0:
             logger.info('Processing frame {} ({:.2f} fps)'.format(frame_id, 1. / max(1e-5, timer.average_time)))
@@ -405,9 +428,13 @@ def run_tracker_in_thread(exp, args, filename, left_region_name, right_region_na
                         people[b] = Person(b, [x_center, y_center])
                     # 进行关键点检测
                     result_generator = inferencer(img, show=False, use_oks_tracking=False)
+                    angle = []
                     try:
                         results = [result for result in result_generator]
                         points = results[0]['predictions'][0][0]['keypoints']
+                        for combination in angle_combinations:
+                            angle.append(caculate_angle(points, *combination))
+                        people[b].angle.append(angle)
                     except ZeroDivisionError:
                         points = []
                         results = []
