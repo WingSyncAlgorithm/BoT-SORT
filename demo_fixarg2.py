@@ -34,6 +34,7 @@ from PyQt5.QtCore import QTimer, Qt
 from PyQt5.QtWidgets import QApplication, QWidget, QLabel, QVBoxLayout, QComboBox, QPushButton
 from PyQt5.QtGui import QPainter, QImage, QColor, QPolygon
 from shapely.geometry import Point, Polygon
+from mmpose.apis import MMPoseInferencer
 
 class Person():
     def __init__(self, idx, position):
@@ -43,6 +44,7 @@ class Person():
         self.path = []
         self.previous_position = position
         self.current_position = position
+        self.keypoints = []
 
     def add_image(self, image):
         self.image.append(image)
@@ -251,6 +253,7 @@ class Predictor(object):
         return outputs, img_info
 
 def run_tracker_in_thread(exp, args, filename, left_region_name, right_region_name, file_index):
+    inferencer = MMPoseInferencer("human")
     if not args.experiment_name:
         args.experiment_name = exp.exp_name
 
@@ -400,6 +403,13 @@ def run_tracker_in_thread(exp, args, filename, left_region_name, right_region_na
                     y_center = y1 + w/2
                     if b not in people:
                         people[b] = Person(b, [x_center, y_center])
+                    # 进行关键点检测
+                    result_generator = inferencer(img, show=False, use_oks_tracking=False)
+                    results = [result for result in result_generator]
+
+                    # 获取关键点坐标
+                    points = results[0]['predictions'][0][0]['keypoints']
+                    people[b].keypoints.append(points)
                     people[b].add_image(img)
                     people[b].update_position([x_center, y_center])
                     w = len(frame[0, :])
@@ -685,7 +695,7 @@ if __name__ == "__main__":
     
     tracker_thread1 = threading.Thread(
         target=run_tracker_in_thread, args=(exp, args, video_file1, "A", "Outside", 0), daemon=True)
-    
+    """
     args_dict2 = {
         'demo': 'webcam',
         'path': "d.mp4",
@@ -708,6 +718,7 @@ if __name__ == "__main__":
     
     tracker_thread2 = threading.Thread(
         target=run_tracker_in_thread, args=(exp2, args2, video_file2, "A", "D", 1), daemon=True)
+    """
     '''
     args_dict3 = {
         'demo': 'webcam',
@@ -735,12 +746,12 @@ if __name__ == "__main__":
     tracker_thread4 = threading.Thread(
         target=show_window, daemon=True)
     tracker_thread1.start()
-    tracker_thread2.start()
+    #tracker_thread2.start()
     #tracker_thread3.start()
     tracker_thread4.start()
     # Wait for the tracker thread to finish
     tracker_thread1.join()
-    tracker_thread2.join()
+    #tracker_thread2.join()
     #tracker_thread3.join()
     tracker_thread4.join()
     # Clean up and close windows
