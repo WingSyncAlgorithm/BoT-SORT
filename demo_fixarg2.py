@@ -47,6 +47,7 @@ class Person():
         self.current_position = position
         self.keypoints = []
         self.angles = []
+        self.angles_cost = []
 
     def add_image(self, image):
         self.image.append(image)
@@ -213,7 +214,7 @@ def caculate_angle(points,idx1,idx2,idx3):
     
     return angle_rad
 
-def difference_sum(v1, v2):
+def difference_mean(v1, v2):
     # 確保兩個向量的長度相同
     assert len(v1) == len(v2), "兩個向量的長度不同"
     
@@ -221,9 +222,9 @@ def difference_sum(v1, v2):
     result = [abs(x - y) for x, y in zip(v1, v2)]
     
     # 將結果相加
-    absolute_sum = sum(result)
+    average = sum(result) / len(result)
     
-    return absolute_sum
+    return average
 
 
 class Predictor(object):
@@ -443,7 +444,7 @@ def run_tracker_in_thread(exp, args, filename, left_region_name, right_region_na
                         people[b].angles.append(angle)
                         angles_len = len(people[b].angles)
                         if angles_len>=2:
-                            difference_sum(people[b].angles[angles_len-1],people[b].angles[angles_len-2])
+                            people[b].angles_cost.append(difference_mean(people[b].angles[angles_len-1],people[b].angles[angles_len-2]))
                     except ZeroDivisionError:
                         points = []
                         results = []
