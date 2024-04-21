@@ -432,6 +432,7 @@ def run_tracker_in_thread(exp, args, filename, left_region_name, right_region_na
                 online_im = plot_tracking(
                     img_info['raw_img'], online_tlwhs, online_ids, frame_id=frame_id + 1, fps=1. / timer.average_time
                 )
+                alarm = False
                 for i, tlwh in enumerate(online_tlwhs):
                     x1, y1, w, h = tlwh
                     img = extract_images_from_box(frame, [x1,y1,x1+w,y1+h])
@@ -455,6 +456,7 @@ def run_tracker_in_thread(exp, args, filename, left_region_name, right_region_na
                             people[b].angles_cost.append(cost)
                             if cost>1:
                                 print("alarm")
+                                alarm = True
                     except ZeroDivisionError:
                         points = []
                         results = []
@@ -487,6 +489,8 @@ def run_tracker_in_thread(exp, args, filename, left_region_name, right_region_na
                 online_im = img_info['raw_img']
             number_in_left = region[left_region_name].num_people
             res_plotted = online_im
+            cv2.putText(res_plotted, 'fall_alarm', (
+                50, 30), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
             # Store the time and object count
             times.append(time.perf_counter()-t0)
             object_counts.append(number_in_left)
@@ -718,7 +722,7 @@ if __name__ == "__main__":
     # Set specific argument values
     args_dict = {
         'demo': 'webcam',
-        'path': "fall.mp4",
+        'path': "fall2.mp4",
         'exp_file': 'yolox/exps/example/mot/yolox_x_mix_det.py',
         'ckpt': 'pretrained/bytetrack_x_mot17.pth.tar',
         'with_reid': True,
@@ -736,7 +740,7 @@ if __name__ == "__main__":
     args.ablation = False
     args.mot20 = not args.fuse_score
     
-    video_file1 = "fall.mp4"  # Path to video file, 0 for webcam
+    video_file1 = "fall2.mp4"  # Path to video file, 0 for webcam
     video_file2 = "d.mp4"
     video_file3 = "door3.MOV"
     #video_file2 = "c.mp4"
