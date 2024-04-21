@@ -519,7 +519,7 @@ def run_tracker_in_thread(exp, args, filename, left_region_name, right_region_na
             if ch == 27 or ch == ord("q") or ch == ord("Q"):
                 break
         else:
-            break
+            continue
         frame_id += 1
     cap.release()                           # 所有作業都完成後，釋放資源
 
@@ -701,7 +701,7 @@ if __name__ == "__main__":
     # Set specific argument values
     args_dict = {
         'demo': 'webcam',
-        'path': "fall.mp4",
+        'path': "fall2.mp4",
         'exp_file': 'yolox/exps/example/mot/yolox_x_mix_det.py',
         'ckpt': 'pretrained/bytetrack_x_mot17.pth.tar',
         'with_reid': True,
@@ -719,7 +719,7 @@ if __name__ == "__main__":
     args.ablation = False
     args.mot20 = not args.fuse_score
     
-    video_file1 = "fall.mp4"  # Path to video file, 0 for webcam
+    video_file1 = "fall2.mp4"  # Path to video file, 0 for webcam
     video_file2 = "d.mp4"
     video_file3 = "door3.MOV"
     #video_file2 = "c.mp4"
