@@ -292,6 +292,9 @@ def run_tracker_in_thread(exp, args, filename, left_region_name, right_region_na
     output_dir = osp.join(exp.output_dir, args.experiment_name)
     os.makedirs(output_dir, exist_ok=True)
 
+    if args.save_result:
+        vis_folder = osp.join(output_dir, "track_vis")
+        os.makedirs(vis_folder, exist_ok=True)
 
     if args.trt:
         args.device = "gpu"
@@ -345,21 +348,30 @@ def run_tracker_in_thread(exp, args, filename, left_region_name, right_region_na
     width = cap.get(cv2.CAP_PROP_FRAME_WIDTH)  # float
     height = cap.get(cv2.CAP_PROP_FRAME_HEIGHT)  # float
     fps = cap.get(cv2.CAP_PROP_FPS)
+    timestamp = time.strftime("%Y_%m_%d_%H_%M_%S", current_time)
+    save_folder = osp.join(vis_folder, timestamp)
+    os.makedirs(save_folder, exist_ok=True)
+    if args.demo == "video":
+        save_path = osp.join(save_folder, args.path.split("/")[-1])
+    else:
+        save_path = osp.join(save_folder, f"camera_{file_index}.mp4")
+    logger.info(f"video save_path is {save_path}")
+    vid_writer = cv2.VideoWriter(
+        save_path, cv2.VideoWriter_fourcc(*"mp4v"), fps, (int(width), int(height))
+    )
     tracker = BoTSORT(args, frame_rate=args.fps)
     timer = Timer()
     frame_id = 0
     results = []
     fourcc = cv2.VideoWriter_fourcc(*'XVID')
-    output_folder = f'videos{file_index}'  # 假設影片存放在一個名為 'videos' 的文件夾中
+    output_folder = 'videos'  # 假設影片存放在一個名為 'videos' 的文件夾中
     os.makedirs(output_folder, exist_ok=True)  # 創建文件夾，如果不存在的話
     start_time = cv2.getTickCount()
     duration_per_minute = cv2.getTickFrequency() * 60  #形狀要跟影片加圖表的大小一樣
     # 分鐘計數器
     minute_count = 1
-    timestamp = datetime.datetime.now().strftime(
-                "%Y%m%d%H%M%S%f")  # Generate timestamp
     # 初始視訊寫入器
-    out = cv2.VideoWriter(os.path.join(output_folder, f'output_{timestamp}.avi'), fourcc, fps, (800,400))  # 預設幀率為30
+    out = cv2.VideoWriter(os.path.join(output_folder, f'output_{minute_count}.avi'), fourcc, 30, (800,400))  # 預設幀率為30
 
     # Set up Matplotlib figure and canvas for the object count plot
     fig_object_count = Figure()
@@ -442,8 +454,7 @@ def run_tracker_in_thread(exp, args, filename, left_region_name, right_region_na
                             cost = difference_mean(people[b].angles[angles_len-1],people[b].angles[angles_len-2])
                             people[b].angles_cost.append(cost)
                             if cost>1:
-                                alarm = True
-                                
+                                print("alarm")
                     except ZeroDivisionError:
                         points = []
                         results = []
@@ -476,9 +487,6 @@ def run_tracker_in_thread(exp, args, filename, left_region_name, right_region_na
                 online_im = img_info['raw_img']
             number_in_left = region[left_region_name].num_people
             res_plotted = online_im
-            if alarm == True:
-                cv2.putText(res_plotted, f'alarm', (
-                    100, 30), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
             # Store the time and object count
             times.append(time.perf_counter()-t0)
             object_counts.append(number_in_left)
@@ -510,10 +518,13 @@ def run_tracker_in_thread(exp, args, filename, left_region_name, right_region_na
             if cv2.getTickCount() - start_time >= duration_per_minute:
                 out.release()  # 釋放舊的視訊寫入器
                 minute_count += 1
-                out = cv2.VideoWriter(os.path.join(output_folder, f'output_{timestamp}.avi'), fourcc, fps, (800,400))  # 預設幀率為30
+                out = cv2.VideoWriter(os.path.join(output_folder, f'output_{minute_count}.avi'), fourcc, 30, (800,400))  # 預設幀率為30
                 start_time = cv2.getTickCount()
             if frame_for_window[file_index].quit == True:
                 break
+            if args.save_result:
+                #cv2.imshow('oxxostudio',online_im)
+                vid_writer.write(online_im)
             ch = cv2.waitKey(1)
             if ch == 27 or ch == ord("q") or ch == ord("Q"):
                 break
@@ -521,6 +532,13 @@ def run_tracker_in_thread(exp, args, filename, left_region_name, right_region_na
             break
         frame_id += 1
     cap.release()                           # 所有作業都完成後，釋放資源
+    '''
+    if args.save_result:
+        res_file = osp.join(vis_folder, f"{timestamp}.txt")
+        with open(res_file, 'w') as f:
+            f.writelines(results)
+        logger.info(f"save results to {res_file}")
+    '''
 
 class CameraWidget(QWidget):
     def __init__(self, parent=None):
@@ -700,7 +718,7 @@ if __name__ == "__main__":
     # Set specific argument values
     args_dict = {
         'demo': 'webcam',
-        'path': "fall2.mp4",
+        'path': "fall.mp4",
         'exp_file': 'yolox/exps/example/mot/yolox_x_mix_det.py',
         'ckpt': 'pretrained/bytetrack_x_mot17.pth.tar',
         'with_reid': True,
@@ -718,7 +736,7 @@ if __name__ == "__main__":
     args.ablation = False
     args.mot20 = not args.fuse_score
     
-    video_file1 = "fall2.mp4"  # Path to video file, 0 for webcam
+    video_file1 = "fall.mp4"  # Path to video file, 0 for webcam
     video_file2 = "d.mp4"
     video_file3 = "door3.MOV"
     #video_file2 = "c.mp4"
