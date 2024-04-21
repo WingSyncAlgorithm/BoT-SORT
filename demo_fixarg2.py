@@ -364,7 +364,15 @@ def run_tracker_in_thread(exp, args, filename, left_region_name, right_region_na
     frame_id = 0
     results = []
     fourcc = cv2.VideoWriter_fourcc(*'XVID')
-    out = cv2.VideoWriter(f'output_{file_index}.avi', fourcc, 20.0, (800, 400)) #形狀要跟影片加圖表的大小一樣
+    output_folder = 'videos'  # 假設影片存放在一個名為 'videos' 的文件夾中
+    os.makedirs(output_folder, exist_ok=True)  # 創建文件夾，如果不存在的話
+    start_time = cv2.getTickCount()
+    duration_per_minute = cv2.getTickFrequency() * 60  #形狀要跟影片加圖表的大小一樣
+    # 分鐘計數器
+    minute_count = 1
+    # 初始視訊寫入器
+    out = cv2.VideoWriter(os.path.join(output_folder, f'output_{minute_count}.avi'), fourcc, 30, (800,400))  # 預設幀率為30
+
     # Set up Matplotlib figure and canvas for the object count plot
     fig_object_count = Figure()
     canvas_object_count = FigureCanvas(fig_object_count)
@@ -443,7 +451,10 @@ def run_tracker_in_thread(exp, args, filename, left_region_name, right_region_na
                         people[b].angles.append(angle)
                         angles_len = len(people[b].angles)
                         if angles_len>=2:
-                            people[b].angles_cost.append(difference_mean(people[b].angles[angles_len-1],people[b].angles[angles_len-2]))
+                            cost = difference_mean(people[b].angles[angles_len-1],people[b].angles[angles_len-2])
+                            people[b].angles_cost.append(cost)
+                            if cost>1:
+                                print("alarm")
                     except ZeroDivisionError:
                         points = []
                         results = []
@@ -457,10 +468,7 @@ def run_tracker_in_thread(exp, args, filename, left_region_name, right_region_na
                     h = len(frame[:, 0])
                     polygon = Polygon([(x * w, y * h) for x, y in frame_for_window[file_index].polygons])
                     point = Point(people[b].current_position[0],people[b].current_position[1])
-                    print(point.within(polygon))
                     if point.within(polygon) == False:
-                        print("bbb",b,people[b].current_position[0],people[b].current_position[1],region[left_region_name].people_in_region)
-                        print("kkk",[(x * w, y * h) for x, y in frame_for_window[file_index].polygons])
                         region[left_region_name].add_person([b])
                         region[right_region_name].delete_person([b])
                         same_person = people[b].same_person
@@ -507,6 +515,11 @@ def run_tracker_in_thread(exp, args, filename, left_region_name, right_region_na
             frame_for_window[file_index].frame_processed = all_image
             # cv2.imshow(f"Tracking_Stream_{file_index}", all_image)
             out.write(all_image)
+            if cv2.getTickCount() - start_time >= duration_per_minute:
+                out.release()  # 釋放舊的視訊寫入器
+                minute_count += 1
+                out = cv2.VideoWriter(os.path.join(output_folder, f'output_{minute_count}.avi'), fourcc, 30, (800,400))  # 預設幀率為30
+                start_time = cv2.getTickCount()
             if frame_for_window[file_index].quit == True:
                 break
             if args.save_result:
