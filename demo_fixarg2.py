@@ -479,7 +479,7 @@ def run_tracker_in_thread(exp, args, filename, left_region_name, right_region_na
             res_plotted = online_im
             if alarm == True:
                 cv2.putText(res_plotted, f'alarm', (
-                    100, 30), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
+                    300, 30), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 0, 0), 2)
             # Store the time and object count
             times.append(time.perf_counter()-t0)
             object_counts.append(number_in_left)
