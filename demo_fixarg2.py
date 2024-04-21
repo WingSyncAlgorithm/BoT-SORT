@@ -420,6 +420,7 @@ def run_tracker_in_thread(exp, args, filename, left_region_name, right_region_na
                 online_im = plot_tracking(
                     img_info['raw_img'], online_tlwhs, online_ids, frame_id=frame_id + 1, fps=1. / timer.average_time
                 )
+                alarm = False
                 for i, tlwh in enumerate(online_tlwhs):
                     x1, y1, w, h = tlwh
                     img = extract_images_from_box(frame, [x1,y1,x1+w,y1+h])
@@ -700,7 +701,7 @@ if __name__ == "__main__":
     # Set specific argument values
     args_dict = {
         'demo': 'webcam',
-        'path': "fall2.mp4",
+        'path': "fall.mp4",
         'exp_file': 'yolox/exps/example/mot/yolox_x_mix_det.py',
         'ckpt': 'pretrained/bytetrack_x_mot17.pth.tar',
         'with_reid': True,
@@ -718,7 +719,7 @@ if __name__ == "__main__":
     args.ablation = False
     args.mot20 = not args.fuse_score
     
-    video_file1 = "fall2.mp4"  # Path to video file, 0 for webcam
+    video_file1 = "fall.mp4"  # Path to video file, 0 for webcam
     video_file2 = "d.mp4"
     video_file3 = "door3.MOV"
     #video_file2 = "c.mp4"
