@@ -681,7 +681,6 @@ class CameraWidget(QWidget):
         # Terminate all threads before closing the window
         for i in range(len(frame_for_window)):
             frame_for_window[i].quit = True
-        print("ttttt",self.polygons)
         event.accept()
 
         # Clean up and close windows
