@@ -386,7 +386,7 @@ def run_tracker_in_thread(exp, args, filename, left_region_name, right_region_na
         ret_val, frame = cap.read()
         if frame_for_window[file_index].start_detection == False:
             # frame_for_window[file_index].ret = True
-            cv2.waitKey(25) #讀影片時需要延遲，以降低影片速度
+            #cv2.waitKey(25) #讀影片時需要延遲，以降低影片速度
             frame_for_window[file_index].frame = frame
             continue
         if ret_val:
@@ -564,7 +564,7 @@ class CameraWidget(QWidget):
         #self.setLayout(layout)
 
         # Add a button to show menu and image
-        self.show_menu_button = QPushButton('Show Menu and Image')
+        self.show_menu_button = QPushButton('Start')
         self.show_menu_button.clicked.connect(self.show_menu_and_image)
         layout.addWidget(self.show_menu_button)
 
@@ -701,7 +701,7 @@ if __name__ == "__main__":
     # Set specific argument values
     args_dict = {
         'demo': 'webcam',
-        'path': "fall.mp4",
+        'path': 0,
         'exp_file': 'yolox/exps/example/mot/yolox_x_mix_det.py',
         'ckpt': 'pretrained/bytetrack_x_mot17.pth.tar',
         'with_reid': True,
@@ -719,7 +719,7 @@ if __name__ == "__main__":
     args.ablation = False
     args.mot20 = not args.fuse_score
     
-    video_file1 = "fall.mp4"  # Path to video file, 0 for webcam
+    video_file1 = 0  # Path to video file, 0 for webcam
     video_file2 = "d.mp4"
     video_file3 = "door3.MOV"
     #video_file2 = "c.mp4"
@@ -730,7 +730,7 @@ if __name__ == "__main__":
     
     tracker_thread1 = threading.Thread(
         target=run_tracker_in_thread, args=(exp, args, video_file1, "A", "Outside", 0), daemon=True)
-    """
+    
     args_dict2 = {
         'demo': 'webcam',
         'path': "d.mp4",
@@ -752,8 +752,8 @@ if __name__ == "__main__":
     args2.mot20 = not args2.fuse_score
     
     tracker_thread2 = threading.Thread(
-        target=run_tracker_in_thread, args=(exp2, args2, video_file2, "A", "D", 1), daemon=True)
-    """
+        target=run_tracker_in_thread, args=(exp2, args2, video_file2, "B", "D", 1), daemon=True)
+    
     '''
     args_dict3 = {
         'demo': 'webcam',
