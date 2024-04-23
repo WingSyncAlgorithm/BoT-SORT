@@ -750,8 +750,8 @@ if __name__ == "__main__":
     args2.ablation = False
     args2.mot20 = not args2.fuse_score
     
-    tracker_thread2 = threading.Thread(
-        target=run_tracker_in_thread, args=(exp2, args2, video_file2, "B", "D", 1), daemon=True)
+    #tracker_thread2 = threading.Thread(
+    #    target=run_tracker_in_thread, args=(exp2, args2, video_file2, "B", "D", 1), daemon=True)
     
     '''
     args_dict3 = {
